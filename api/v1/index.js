@@ -1,10 +1,9 @@
-const { response } = require("express");
 const express = require("express");
 var notesRouter = express.Router();
 const mongoose = require("mongoose");
-const Note = require("../../db/models/note.model");
+const NoteModel = require("../../db/models/note.model");
 
-notesRouter.get("/", (req, response) => {
+notesRouter.get("/", (request, response) => {
   //   const notesData = [
   //     {
   //       text: "Mohsin Ayaz",
@@ -20,7 +19,7 @@ notesRouter.get("/", (req, response) => {
   /**
    * Get All Notes
    */
-  Note.find({}, (err, notes) => {
+  NoteModel.find({}, (err, notes) => {
     if (err) {
       return console.log(err);
     }
@@ -33,8 +32,8 @@ notesRouter.get("/", (req, response) => {
 /**
  * Add a new note
  */
-notesRouter.post("/", (req, response) => {
-  const newNote = new Note(req.body);
+notesRouter.post("/", (request, response) => {
+  const newNote = new NoteModel(request.body);
   newNote.save().then((savedNotes) => {
     response.json({
       notes: savedNotes,
@@ -46,18 +45,65 @@ notesRouter.post("/", (req, response) => {
 /**
  * Get Note By Id
  */
-notesRouter.get("/:id", (req, response) => {
-  response.json({
-    reply: "note by id sucess",
+notesRouter.get("/:id", (request, response) => {
+  const noteId = request.params.id;
+  NoteModel.findById(noteId, (err, note) => {
+    if (err) {
+      return console.log(err);
+    }
+    if (!note) {
+      return response.status(404).json({
+        message: "note not found",
+      });
+    }
+    response.json({
+      reply: "note by id sucess",
+      note,
+    });
   });
 });
 
 /**
  * Delete Note By Id
  */
-notesRouter.delete("/:id", (req, response) => {
-  response.json({
-    reply: "note deleted",
+notesRouter.delete("/:id", (request, response) => {
+  const noteId = request.params.id;
+  NoteModel.findByIdAndRemove(noteId, (err, res) => {
+    console.log(err, res);
+    if (err) {
+      return console.log(err);
+    }
+    if (!res) {
+      return response.status(404).json({
+        message: "note not found for deletion",
+      });
+    }
+    response.json({
+      reply: "notes deleted successfully",
+    });
+  });
+});
+
+/**
+ * Update Note By Id
+ */
+notesRouter.put("/:id", (request, response) => {
+  const noteId = request.params.id;
+  const updatedNote = request.body;
+  NoteModel.findByIdAndUpdate(noteId, updatedNote, (err, res) => {
+    console.log(err, res);
+    if (err) {
+      return console.log(err);
+    }
+    if (!res) {
+      return response.status(404).json({
+        message: "note not found for updating",
+      });
+    }
+    response.json({
+      reply: "notes update successfully",
+      note: updatedNote,
+    });
   });
 });
 
