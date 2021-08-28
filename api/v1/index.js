@@ -36,7 +36,7 @@ notesRouter.post("/", (request, response) => {
   const newNote = new NoteModel(request.body);
   newNote.save().then((savedNotes) => {
     response.json({
-      notes: savedNotes,
+      note: savedNotes,
       success: true,
     });
   });
